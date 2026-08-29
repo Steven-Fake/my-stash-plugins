@@ -18,7 +18,7 @@
         "name": "bittorrent",
         "icon": "qbittorrent.svg",
         "addresses": [],
-        "regex": "^magnet\\:\\?.+"
+        "regex": "^magnet.+"
     },
     {
         "name": "bluesky",
