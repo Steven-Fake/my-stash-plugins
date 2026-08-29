@@ -32,7 +32,7 @@ class GraphQLUtils:
         )
         total = len(resp)
         if not quiet:
-            log.info("Found {} galleries without title".format(total))
+            log.info(f"Found {total} galleries without title")
         for i, item in enumerate(resp):
             if not quiet:
                 log.progress(i / total)
@@ -61,7 +61,7 @@ class GraphQLUtils:
         )
         total = len(resp)
         if not quiet:
-            log.info("Found {} galleries without date".format(total))
+            log.info(f"Found {total} galleries without date")
         for i, item in enumerate(resp):
             if not quiet:
                 log.progress(i / total)
@@ -83,7 +83,7 @@ class GraphQLUtils:
         )
         total = len(resp)
         if not quiet:
-            log.info("Found {} galleries without performers".format(total))
+            log.info(f"Found {total} galleries without performers")
         for i, item in enumerate(resp):
             if not quiet:
                 log.progress(i / total)
@@ -118,7 +118,7 @@ class GraphQLUtils:
 
         total = len(resp)
         if not quiet:
-            log.info("Found {} JVID galleries to sort".format(total))
+            log.info(f"Found {total} JVID galleries to sort")
         for i, item in enumerate(resp):
             if not quiet:
                 log.progress(i / total)
@@ -139,7 +139,7 @@ class GraphQLUtils:
         uncensored_search = self.client.find_tags(
             f={"aliases": {"value": "Uncensored", "modifier": "EQUALS"}}
         )
-        uncensored_tag_id: Optional[str] = (
+        uncensored_tag_id: str | None = (
             uncensored_search[0].get("id") if uncensored_search else None
         )
 
@@ -162,25 +162,23 @@ class GraphQLUtils:
                     "modifier": "MATCHES_REGEX",
                 }
             },
-            fragment="id title code",
+            fragment="id title code tags { id }",
         )
 
         total = len(resp)
         if not quiet:
-            log.info("Found {} XIUREN series galleries to sort".format(total))
+            log.info(f"Found {total} XIUREN series galleries to sort")
         for i, item in enumerate(resp):
             if not quiet:
                 log.progress(i / total)
             title: str = item.get("title", "")
+            tag_ids = [t.get("id") for t in item.get("tags", [])]
             search_result = re.search(r"((Vol|No)\.\d+)", title)
             if not search_result:
                 continue
             code = search_result.group(1)
-            tag_ids = (
-                [uncensored_tag_id]
-                if "Uncensored" in title and uncensored_tag_id
-                else []
-            )
+            if "Uncensored" in title and uncensored_tag_id:
+                tag_ids.append(uncensored_tag_id)
 
             self.client.update_gallery(
                 {"id": item.get("id"), "code": code, "tag_ids": tag_ids}
