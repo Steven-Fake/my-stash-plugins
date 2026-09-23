@@ -1,8 +1,7 @@
 import re
 from collections.abc import Callable
 from pathlib import Path
-from typing import Optional
-
+from urllib.parse import urlparse
 import stashapi.log as log
 from stashapi.stashapp import StashInterface
 
@@ -99,7 +98,7 @@ class GraphQLUtils:
                 if performer_resp:
                     for performer in performer_resp:
                         if name == performer.get("name") or name in performer.get(
-                            "alias_list", []
+                                "alias_list", []
                         ):
                             performer_ids.append(performer.get("id"))
             if performer_ids:
@@ -183,3 +182,46 @@ class GraphQLUtils:
             self.client.update_gallery(
                 {"id": item.get("id"), "code": code, "tag_ids": tag_ids}
             )
+
+    def sort_galleries_urls(self, quiet: bool = False):
+        resp = self.client.find_galleries(
+            f={
+                "url": {
+                    "value": "xsijishe.(com|net)/(thread.+|.+mobile.+)",
+                    "modifier": "MATCHES_REGEX",
+                }
+            },
+            fragment="id urls",
+        )
+
+        total = len(resp)
+        if not quiet:
+            log.info(f"Found {total} galleries to sort urls")
+
+        for i, gallery in enumerate(resp):
+            if not quiet:
+                log.progress(i / total)
+
+            new_urls = []
+            for raw in gallery.get("urls") or []:
+                if not raw or "xsijishe" not in raw:
+                    new_urls.append(raw)
+                    continue
+
+                parsed = urlparse(raw)
+                m = None
+                if parsed.query:
+                    m = re.search(r"(?:^|&)tid=(\d+)", parsed.query)
+                if m is None:
+                    m = re.search(r"thread-(\d+)-", parsed.path)
+
+                if m:
+                    scheme = parsed.scheme or "https"
+                    new_urls.append(
+                        f"{scheme}://xsijishe.com/forum.php?mod=viewthread&tid={m.group(1)}"
+                    )
+                else:
+                    new_urls.append(raw)
+
+            urls = list(dict.fromkeys(new_urls))
+            self.client.update_gallery({"id": gallery.get("id"), "urls": urls})

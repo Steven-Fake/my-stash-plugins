@@ -1,7 +1,7 @@
 name: Gallery Organizer
 # requires: PythonDepManager
 description: A plugin to organize some galleries by my own rules.
-version: 1.0.13
+version: 1.0.14
 exec:
   - python
   - "{pluginDir}/main.py"
@@ -27,3 +27,7 @@ tasks:
     description: Add metadata for XIUREN series galleries. / 为XIUREN系列相册添加元信息
     defaultArgs:
       mode: add_xiuren_metadata
+  - name: Sort urls
+    description: Merge the same url. / 合并实质相同的URL
+    defaultArgs:
+      mode: galleries_urls

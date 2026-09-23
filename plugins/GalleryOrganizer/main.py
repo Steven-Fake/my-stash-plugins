@@ -21,6 +21,8 @@ if __name__ == "__main__":
         graphql_utils.fill_galleries_title()
     elif mode == "galleries_date":
         graphql_utils.fill_galleries_date()
+    elif mode == "galleries_urls":
+        graphql_utils.sort_galleries_urls()
     elif mode == "galleries_performers":
         graphql_utils.add_galleries_performers()
     elif mode == "add_jvid_metadata":
